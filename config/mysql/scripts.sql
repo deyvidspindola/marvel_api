@@ -1,3 +1,1 @@
 CREATE DATABASE IF NOT EXISTS marvel;
-GRANT ALL PRIVILEGES ON *.* TO 'amdin_user'@'localhost';
-FLUSH PRIVILEGES;
