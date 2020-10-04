@@ -33,6 +33,7 @@ services:
     image: nginx
     volumes:
       - ./api:/var/www
+      - ./config/app.env:/var/www/.env
       - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf
     ports:
       - "80:80"
