@@ -22,7 +22,7 @@ Execute o comando abaixo para iniciar todo o ambiente e subir a api:
 
 Esse comando já irar baixar todas as imagens do docker, e configurar corretamente a aplicação;
 
-### Endpoints da aplicação:
+### Endpoits da aplicação:
 
 > /v1/public/characters
 > * name (string)
