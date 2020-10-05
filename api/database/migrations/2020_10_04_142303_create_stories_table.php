@@ -15,7 +15,6 @@ class CreateStoriesTable extends Migration
     {
         Schema::create('stories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('creator_id')->references('id')->on('creators');
             $table->string('title');
             $table->text('description');
             $table->string('type');

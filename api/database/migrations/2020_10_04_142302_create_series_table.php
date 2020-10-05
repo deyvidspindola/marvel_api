@@ -15,14 +15,13 @@ class CreateSeriesTable extends Migration
     {
         Schema::create('series', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('creator_id')->references('id')->on('creators');
             $table->string('title');
             $table->text('description');
             $table->json('urls');
             $table->year('startYear');
             $table->year('endYear');
             $table->char('rating');
-            $table->string('type');
+            $table->string('type')->nullable();
             $table->json('thumbnail');
             $table->timestamps();
         });

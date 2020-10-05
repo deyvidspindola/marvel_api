@@ -15,12 +15,11 @@ class CreateEventsTable extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('creator_id')->references('id')->on('creators');
             $table->string('title');
             $table->text('description');
             $table->json('urls');
-            $table->date('start');
-            $table->date('end');
+            $table->dateTime('start');
+            $table->dateTime('end');
             $table->json('thumbnail');
             $table->timestamps();
         });

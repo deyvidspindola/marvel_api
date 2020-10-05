@@ -21,10 +21,16 @@ Route::get('/', function () {
 
 Route::name('Api.')->prefix('v1/public/characters')->group(function (){
 
-    Route::get('/{characterId?}', [CharactersController::class, 'index'])->name('index');
-    Route::get('/{characterId}/comics', [CharactersController::class, 'comics'])->name('comics');
-    Route::get('/{characterId}/events', [CharactersController::class, 'events'])->name('events');
-    Route::get('/{characterId}/series', [CharactersController::class, 'series'])->name('series');
-    Route::get('/{characterId}/stories', [CharactersController::class, 'stories'])->name('stories');
+    Route::get('/{characterId?}', [CharactersController::class, 'index'])->where('characterId', '[0-9]+')->name('index');
+    Route::get('/{characterId}/comics', [CharactersController::class, 'comics'])->where('characterId', '[0-9]+')->name('comics');
+    Route::get('/{characterId}/events', [CharactersController::class, 'events'])->where('characterId', '[0-9]+')->name('events');
+    Route::get('/{characterId}/series', [CharactersController::class, 'series'])->where('characterId', '[0-9]+')->name('series');
+    Route::get('/{characterId}/stories', [CharactersController::class, 'stories'])->where('characterId', '[0-9]+')->name('stories');
+
+});
+
+Route::fallback(function () {
+
+    return response()->json('Essa rota ainda não foi desenvolvida', 404);
 
 });

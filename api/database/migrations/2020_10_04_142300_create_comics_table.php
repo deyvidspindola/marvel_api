@@ -15,17 +15,16 @@ class CreateComicsTable extends Migration
     {
         Schema::create('comics', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('creator_id')->references('id')->on('creators');
             $table->integer('digitalId');
             $table->string('title');
             $table->double('issueNumber');
             $table->text('variantDescription');
             $table->text('description');
-            $table->string('isbn');
+            $table->string('isbn')->nullable();
             $table->string('upc');
             $table->string('diamondCode');
-            $table->string('ean');
-            $table->string('issn');
+            $table->string('ean')->nullable();
+            $table->string('issn')->nullable();
             $table->string('format');
             $table->integer('pageCount');
             $table->json('prices');
