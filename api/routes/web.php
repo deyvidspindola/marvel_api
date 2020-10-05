@@ -14,11 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-
 Route::name('Api.')->prefix('v1/public/characters')->group(function (){
 
     Route::get('/{characterId?}', [CharactersController::class, 'index'])->where('characterId', '[0-9]+')->name('index');

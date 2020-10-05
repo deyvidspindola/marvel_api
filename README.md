@@ -14,7 +14,7 @@ Apos clonar o projeto, acesse a diretorio:
 
 De permissão para a pasta storage do Laravel
 
-`chown -R www-data:www-data ./api/storage`
+`sudo chown -R www-data:www-data ./api/storage`
 
 Execute o comando abaixo para iniciar todo o ambiente e subir a api:
 
