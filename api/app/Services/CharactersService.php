@@ -5,7 +5,6 @@ namespace App\Services;
 
 
 use App\Models\Character;
-use phpDocumentor\Reflection\DocBlock\Tags\Throws;
 
 class CharactersService
 {
@@ -15,215 +14,66 @@ class CharactersService
      */
     private $character;
 
-    public function __construct(
-        Character $character
-    )
+    public function __construct(Character $character)
     {
         $this->character = $character;
     }
 
-    public function characters($characterId, $requests)
+    public function methods($characterId, $endpoint, $requests)
     {
-        $characters = $this->search($characterId, $requests);
+
+        $this->validEndpoin($endpoint);
+
+        $items = $this->search($characterId, $requests, $endpoint);
 
         $data = [
             'data' => [
-                'offset' => $characters['offset'],
-                'limit' => $characters['limit'],
-                'total' => $characters['total'],
-                'count' => $characters['count'],
+                'offset' => $items['offset'],
+                'limit' => $items['limit'],
+                'total' => $items['total'],
+                'count' => $items['count'],
             ]
         ];
-        foreach ($characters['items'] as $character){
-            $data['data']['results'][] = [
-                'id' => $character->id,
-                'name' => $character->name,
-                'description' => $character->description,
-                'modified' => $character->updated_at->format('Y-m-d H:i:s'),
-                'thumbnail' => [
-                    "path" => json_decode($character->thumbnail)->path,
-                    "extension" => json_decode($character->thumbnail)->extension
-                ],
-                'resourceURI' => url("/v1/public/characters/".$character->id),
-                'comics' => $this->getRelationships($character, 'comics'),
-                'series' => $this->getRelationships($character, 'series'),
-                'stories' => $this->getRelationships($character, 'stories'),
-                'events' => $this->getRelationships($character, 'events'),
-                'urls' => $this->getJson($character->urls, ['type', 'url']),
+        $i = 0;
+        foreach ($items['items'] as $item){
+            foreach ($item->toArray() as $key => $value){
+                if (!in_array($key, ['created_at', 'updated_at', 'pivot']))
+                $data['data']['results'][$i][$key] = $value;
+            }
+            $data['data']['results'][$i]['modified'] = $item->updated_at->format('Y-m-d H:i:s');
+            $data['data']['results'][$i]['thumbnail'] = [
+                "path" => json_decode($item->thumbnail)->path,
+                "extension" => json_decode($item->thumbnail)->extension
             ];
-        }
-        return $data;
-    }
+            $data['data']['results'][$i]['resourceURI'] = url("/v1/public/characters/".$item->id);
+            $data['data']['results'][$i]['urls'] = $this->getJson($item->urls, ['type', 'url']);
 
-    public function comics($characterId, $requests)
-    {
-        $comics = $this->search($characterId, $requests, 'comics');
+            if (is_null($endpoint)) {
+                $data['data']['results'][$i]['comics'] = $this->getRelationships($item, 'comics');
+                $data['data']['results'][$i]['series'] = $this->getRelationships($item, 'series');
+                $data['data']['results'][$i]['stories'] = $this->getRelationships($item, 'stories');
+                $data['data']['results'][$i]['events'] = $this->getRelationships($item, 'events');
+            }else{
+                $data['data']['results'][$i]['characters'] = $this->getRelationships($item, 'characters', 'comics');
+                if ($endpoint != 'comics')
+                    $data['data']['results'][$i]['comics'] = $this->getFakeRelationships($characterId, 'comics', $endpoint);
 
-        $data = [
-            'data' => [
-                'offset' => $comics['offset'],
-                'limit' => $comics['limit'],
-                'total' => $comics['total'],
-                'count' => $comics['count'],
-            ]
-        ];
-        foreach ($comics['items'] as $comic){
-            $data['data']['results'][] = [
-                'id' => $comic->id,
-                'digitalId' => $comic->digitalId,
-                'title' => $comic->title,
-                'issueNumber' => $comic->issueNumber,
-                'variantDescription' => $comic->variantDescription,
-                'description' => $comic->description,
-                'modified' => $comic->updated_at->format('Y-m-d H:i:s'),
-                'isbn' => $comic->isbn,
-                'upc' => $comic->upc,
-                'diamondCode' => $comic->diamondCode,
-                'ean' => $comic->ean,
-                'issn' => $comic->issn,
-                'format' => $comic->format,
-                'pageCount' => $comic->pageCount,
-                'textObjects' => [],
-                'resourceURI' => url("/v1/public/characters/".$comic->id),
-                'urls' => $this->getJson($comic->urls, ['type', 'url']),
-                'series' => $this->getFakeRelationships($characterId, 'series', 'comics'),
-                'variants' => [],
-                'collections' => [],
-                'collectedIssues' => [],
-                'dates' => [],
-                'prices' => $this->getJson($comic->prices, ['type', 'price']),
-                'thumbnail' => [
-                    "path" => json_decode($comic->thumbnail)->path,
-                    "extension" => json_decode($comic->thumbnail)->extension
-                ],
-                'images' => $this->getJson($comic->images, ['path', 'extension']),
-                'creators' => [
+                if ($endpoint != 'series')
+                    $data['data']['results'][$i]['series'] = $this->getFakeRelationships($characterId, 'series', $endpoint);
 
-                ],
-                'characters' => $this->getRelationships($comic, 'characters', 'comics'),
-                'stories' => $this->getFakeRelationships($characterId, 'stories', 'comics'),
-                'events' => $this->getFakeRelationships($characterId, 'events', 'comics'),
+                if ($endpoint != 'stories')
+                    $data['data']['results'][$i]['stories'] = $this->getFakeRelationships($characterId, 'stories', $endpoint);
 
-            ];
-        }
-        return $data;
-    }
+                if ($endpoint != 'events')
+                    $data['data']['results'][$i]['events'] = $this->getFakeRelationships($characterId, 'events', $endpoint);
 
-    public function series($characterId)
-    {
+                if ($endpoint == 'comics'){
+                    $data['data']['results'][$i]['prices'] = $this->getJson($item->prices, ['type', 'price']);
+                    $data['data']['results'][$i]['images'] = $this->getJson($item->images, ['path', 'extension']);
+                }
+            }
 
-        $series = $this->character->find($characterId)->series;
-
-        $data = [
-            'data' => [
-                'offset' => 0,
-                'limit' => 20,
-                'total' => $series->count(),
-                'count' => $series->count(),
-            ]
-        ];
-        foreach ($series as $serie){
-            $data['data']['results'][] = [
-                'id' => $serie->id,
-                'title' => $serie->title,
-                'description' => $serie->description,
-                'resourceURI' => url("/v1/public/series/".$serie->id),
-                'urls' => $this->getJson($serie->urls, ['type', 'url']),
-                'startYear' => $serie->startYear,
-                'endYear' => $serie->endYear,
-                'rating' => $serie->rating,
-                'type' => $serie->type,
-                'modified' => $serie->updated_at->format('Y-m-d H:i:s'),
-                'thumbnail' => [
-                    "path" => json_decode($serie->thumbnail)->path,
-                    "extension" => json_decode($serie->thumbnail)->extension
-                ],
-                'creators' => [
-
-                ],
-                'characters' => $this->getRelationships($serie, 'characters', 'series'),
-                'stories' => $this->getFakeRelationships($characterId, 'stories', 'series'),
-                'comics' => $this->getFakeRelationships($characterId, 'comics', 'series'),
-                'events' => $this->getFakeRelationships($characterId, 'events', 'series')
-            ];
-        }
-        return $data;
-    }
-
-    public function stories($characterId)
-    {
-
-        $stories = $this->character->find($characterId)->stories;
-
-        $data = [
-            'data' => [
-                'offset' => 0,
-                'limit' => 20,
-                'total' => $stories->count(),
-                'count' => $stories->count(),
-            ]
-        ];
-        foreach ($stories as $story){
-            $data['data']['results'][] = [
-                'id' => $story->id,
-                'title' => $story->title,
-                'description' => $story->description,
-                'resourceURI' => url("/v1/public/stories/".$story->id),
-                'urls' => $this->getJson($story->urls, ['type', 'url']),
-                'modified' => $story->updated_at->format('Y-m-d H:i:s'),
-                'thumbnail' => [
-                    "path" => json_decode($story->thumbnail)->path,
-                    "extension" => json_decode($story->thumbnail)->extension
-                ],
-                'creators' => [
-
-                ],
-                'characters' => $this->getRelationships($story, 'characters',  'stories'),
-                'stories' => $this->getFakeRelationships($characterId, 'stories', 'stories'),
-                'comics' => $this->getFakeRelationships($characterId, 'comics', 'stories'),
-                'events' => $this->getFakeRelationships($characterId, 'events', 'stories'),
-                'originalIssue' => []
-            ];
-        }
-        return $data;
-    }
-
-    public function events($characterId)
-    {
-
-        $events = $this->character->find($characterId)->events;
-
-        $data = [
-            'data' => [
-                'offset' => 0,
-                'limit' => 20,
-                'total' => $events->count(),
-                'count' => $events->count(),
-            ]
-        ];
-        foreach ($events as $event){
-            $data['data']['results'][] = [
-                'id' => $event->id,
-                'title' => $event->title,
-                'description' => $event->description,
-                'resourceURI' => url("/v1/public/events/".$event->id),
-                'urls' => $this->getJson($event->urls, ['type', 'url']),
-                'modified' => $event->updated_at->format('Y-m-d H:i:s'),
-                'start' => $event->start,
-                'end' => $event->end,
-                'thumbnail' => [
-                    "path" => json_decode($event->thumbnail)->path,
-                    "extension" => json_decode($event->thumbnail)->extension
-                ],
-                'creators' => [
-
-                ],
-                'characters' => $this->getRelationships($event, 'characters',  'events'),
-                'stories' => $this->getFakeRelationships($characterId, 'stories', 'events'),
-                'comics' => $this->getFakeRelationships($characterId, 'comics', 'events'),
-                'events' => $this->getFakeRelationships($characterId, 'events', 'events'),
-                'originalIssue' => []
-            ];
+            $i++;
         }
         return $data;
     }
@@ -319,6 +169,13 @@ class CharactersService
 
     }
 
+    private function validEndpoin($endpoint)
+    {
+        if (!is_null($endpoint) && !in_array($endpoint, ['comics', 'series', 'stories', 'events'])){
+            throw new \Exception('O endpoint '.$endpoint.' é invalido', '409');
+        }
+    }
+
     private function getJson($items, $array)
     {
         $data = array();
@@ -357,7 +214,6 @@ class CharactersService
 
     private function getFakeRelationships($data, $type, $endpoind = 'characters')
     {
-
         $items = $this->character->find($data)->$type;
 
         $data = [

@@ -20,25 +20,10 @@ class CharactersController extends Controller
         $this->service = $service;
     }
 
-    public function index(Request $request, $characterId = null)
+    public function index($characterId = null, $endpoint = null, Request $request)
     {
         try {
-            $data = $this->service->characters($characterId, $request->all());
-            return response()->json($data, 200);
-        } catch (\Exception $exception) {
-            $data = [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
-            return response()->json($data, $exception->getCode());
-        }
-
-    }
-
-    public function comics($characterId, Request $request)
-    {
-        try {
-            $data = $this->service->comics($characterId, $request->all());
+            $data = $this->service->methods($characterId, $endpoint, $request->all());
             return response()->json($data, 200);
         }catch (\Exception $exception){
             $data = [
@@ -48,48 +33,4 @@ class CharactersController extends Controller
             return response()->json($data, $exception->getCode());
         }
     }
-
-    public function events($characterId, Request $request)
-    {
-        try {
-            $data = $this->service->events($characterId, $request->all());
-            return response()->json($data, 200);
-        }catch (\Exception $exception){
-            $data = [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
-            return response()->json($data, $exception->getCode());
-        }
-    }
-
-    public function series($characterId, Request $request)
-    {
-        try {
-            $data = $this->service->series($characterId, $request->all());
-            return response()->json($data, 200);
-        }catch (\Exception $exception){
-            $data = [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
-            return response()->json($data, $exception->getCode());
-        }
-    }
-
-    public function stories($characterId, Request $request)
-    {
-        try {
-            $data = $this->service->stories($characterId, $request->all());
-            return response()->json($data, 200);
-        }catch (\Exception $exception){
-            $data = [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
-            return response()->json($data, $exception->getCode());
-        }
-    }
-
-
 }
