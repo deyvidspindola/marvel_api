@@ -20,7 +20,7 @@ Execute o comando abaixo para iniciar todo o ambiente e subir a api:
 
 `bash -c "bash ./start.sh && tail -f"`
 
-Esse comando já irar baixar todas as imagens do docker, e configurar corretamente a aplicação;
+Esse comando já irá baixar todas as imagens do docker, e configurar corretamente a aplicação;
 
 ### Endpoits da aplicação:
 
