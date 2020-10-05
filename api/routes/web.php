@@ -26,6 +26,9 @@ Route::name('Api.')->prefix('v1/public/characters')->group(function (){
 
 Route::fallback(function () {
 
-    return response()->json('Essa rota ainda não foi desenvolvida', 404);
+    return response()->json([
+        'code' => 404,
+        'message' => 'Essa rota ainda não foi desenvolvida'
+    ], 404);
 
 });

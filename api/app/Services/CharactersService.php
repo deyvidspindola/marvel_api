@@ -5,6 +5,7 @@ namespace App\Services;
 
 
 use App\Models\Character;
+use phpDocumentor\Reflection\DocBlock\Tags\Throws;
 
 class CharactersService
 {
@@ -21,23 +22,19 @@ class CharactersService
         $this->character = $character;
     }
 
-    public function characters($characterId)
+    public function characters($characterId, $requests)
     {
-
-        $characters = $this->character->all();
-        if (!is_null($characterId)){
-            $characters = $this->character->whereId($characterId)->get();
-        }
+        $characters = $this->search($characterId, $requests);
 
         $data = [
             'data' => [
-                'offset' => 0,
-                'limit' => 20,
-                'total' => $this->character->all()->count(),
-                'count' => $characters->count(),
+                'offset' => $characters['offset'],
+                'limit' => $characters['limit'],
+                'total' => $characters['total'],
+                'count' => $characters['count'],
             ]
         ];
-        foreach ($characters as $character){
+        foreach ($characters['items'] as $character){
             $data['data']['results'][] = [
                 'id' => $character->id,
                 'name' => $character->name,
@@ -58,18 +55,19 @@ class CharactersService
         return $data;
     }
 
-    public function comics($characterId)
+    public function comics($characterId, $requests)
     {
-        $comics = $this->character->find($characterId)->comics;
+        $comics = $this->search($characterId, $requests, 'comics');
+
         $data = [
             'data' => [
-                'offset' => 0,
-                'limit' => 20,
-                'total' => $comics->count(),
-                'count' => $comics->count(),
+                'offset' => $comics['offset'],
+                'limit' => $comics['limit'],
+                'total' => $comics['total'],
+                'count' => $comics['count'],
             ]
         ];
-        foreach ($comics as $comic){
+        foreach ($comics['items'] as $comic){
             $data['data']['results'][] = [
                 'id' => $comic->id,
                 'digitalId' => $comic->digitalId,
@@ -228,6 +226,97 @@ class CharactersService
             ];
         }
         return $data;
+    }
+
+    private function search($characterId, $requests = null, $types = null)
+    {
+        if (!is_null($types)){
+            $character = $this->character->find($characterId);
+            $items = $character->$types;
+            $total = $items->count();
+            if (!is_null($requests)){
+                $where = array();
+                foreach ($requests as $key => $value){
+                    if (!in_array($key, ['offset','limit','orderBy'])){
+                        if (in_array($key, ['name', 'title', 'digitalId'])){
+                            if (empty($value))
+                                throw new \Exception('O parametro passado está vazio', '409');
+
+                            if(in_array($types, ['characters', 'creators']) && $key == 'title')
+                                throw new \Exception('O parametro '.$key.' é invalido', '409');
+
+                            if(!in_array($types, ['characters', 'creators']) && $key == 'name')
+                                throw new \Exception('O parametro '.$key.' é invalido', '409');
+
+                            if (in_array($key, ['name', 'title']) && is_numeric($value))
+                                throw new \Exception('O parametro '.$key.' não é uma string', '409');
+
+                            if (in_array($key, ['digitalId']) && !is_numeric($value))
+                                throw new \Exception('O parametro '.$key.' não é um inteiro', '409');
+                            
+                            $where[] = [$key, '=', $value];
+                        }else{
+                            throw new \Exception('Não é possivel buscar por esse parametro', '409');
+                        }
+                    }
+                }
+                $items = $character->$types()->where($where);
+
+                if (isset($requests['offset']))
+                    $items = $items->offset($requests['offset']);
+
+                if (isset($requests['limit']))
+                    $items = $items->limit($requests['limit']);
+
+                if (isset($requests['orderBy']))
+                    $items = $items->orderBy($requests['orderBy']);
+
+                $items = $items->get();
+            }
+        }else{
+            if (!is_null($requests) && !empty($requests)){
+                $where = array();
+                foreach ($requests as $key => $value){
+                    if (!in_array($key, ['offset','limit','orderBy'])){
+                        if (in_array($key, ['name'])){
+                            if (empty($value))
+                                throw new \Exception('O parametro passado está vazio', '409');
+
+                            $where[] = [$key, '=', $value];
+                        }else{
+                            throw new \Exception('Não é possivel buscar por esse parametro', '409');
+                        }
+                    }
+                }
+                $items = $this->character->where($where);
+
+                if (isset($requests['offset']))
+                    $items = $items->offset($requests['offset']);
+
+                if (isset($requests['limit']))
+                    $items = $items->limit($requests['limit']);
+
+                if (isset($requests['orderBy']))
+                    $items = $items->orderBy($requests['orderBy']);
+
+                $items = $items->get();
+            }else{
+                $items = $this->character->all();
+                if (!is_null($characterId)){
+                    $items = $this->character->whereId($characterId)->get();
+                }
+            }
+            $total = $items->count();
+        }
+
+        return [
+            'offset' => (!is_null($requests) && !isset($requests['offset'])) ? 0 : $requests['offset'],
+            'limit' => (!is_null($requests) && !isset($requests['limit'])) ? 0 : $requests['limit'],
+            'total' => $total,
+            'count' => $items->count(),
+            'items' => $items,
+        ];
+
     }
 
     private function getJson($items, $array)
