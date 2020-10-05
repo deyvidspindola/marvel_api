@@ -24,9 +24,44 @@ Esse comando já irar baixar todas as imagens do docker, e configurar corretamen
 
 ### Endpoints da aplicação:
 
-* /v1/public/characters
-* /v1/public/characters/{characterId}
-* /v1/public/characters/{characterId}/comics
-* /v1/public/characters/{characterId}/events
-* /v1/public/characters/{characterId}/series
-* /v1/public/characters/{characterId}/stories
+> /v1/public/characters
+> * name (string)
+> * orderBy 
+> * limit (int)
+> * offset (int)
+
+> /v1/public/characters/{characterId}
+> * characterId (int)
+> * name (string)
+> * orderBy 
+> * limit (int)
+> * offset (int)
+
+> /v1/public/characters/{characterId}/comics
+> * characterId (int)
+> * title (string)
+> * digitalId (int)
+> * orderBy 
+> * limit (int)
+> * offset (int)
+
+> /v1/public/characters/{characterId}/events
+> * characterId (int)
+> * name (string)
+> * orderBy 
+> * limit (int)
+> * offset (int)
+
+> /v1/public/characters/{characterId}/series
+> * characterId (int)
+> * title (string)
+> * orderBy 
+> * limit (int)
+> * offset (int)
+
+> /v1/public/characters/{characterId}/stories
+> * characterId (int)
+> * title (string)
+> * orderBy 
+> * limit (int)
+> * offset (int)

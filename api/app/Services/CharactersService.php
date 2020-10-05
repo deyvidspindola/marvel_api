@@ -253,7 +253,7 @@ class CharactersService
 
                             if (in_array($key, ['digitalId']) && !is_numeric($value))
                                 throw new \Exception('O parametro '.$key.' não é um inteiro', '409');
-                            
+
                             $where[] = [$key, '=', $value];
                         }else{
                             throw new \Exception('Não é possivel buscar por esse parametro', '409');
