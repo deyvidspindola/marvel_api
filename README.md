@@ -7,6 +7,7 @@ _Essa api foi desenvolvida a fim de suprir os endpoits que foram quebrados pelo 
 Os pré requisitos para a perfeita execução dessa api são:
  * Ambiente linux;
  * Ter o docker instalado na maquina, na versão 17.06.0+
+ * Ter o docker composer instalado
 
 Apos clonar o projeto, acesse a diretorio:
 
